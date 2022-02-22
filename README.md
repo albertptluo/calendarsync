@@ -1,14 +1,13 @@
-
 <h2>Guide</h2>
 <h4>Calendar Links</h4>
-<ul>
-<li>[UNC events](https://calendar.google.com/calendar/ical/c_0l98kicv3qq7r2oennl8k9s098%40group.calendar.google.com/public/basic.ics)</li>
-<li>[Churchwide events](https://calendar.google.com/calendar/ical/c_62ejgnq5tqpu3kl47ul3qpotv0%40group.calendar.google.com/public/basic.ics)</li>
-<li>[NC State events](https://calendar.google.com/calendar/ical/c_t28vt5a8vmnc2alsrkgs5h76ic%40group.calendar.google.com/public/basic.ics)</li>
-</ul>
+
+- [UNC events](https://calendar.google.com/calendar/ical/c_0l98kicv3qq7r2oennl8k9s098%40group.calendar.google.com/public/basic.ics) </li>
+- [Churchwide events](https://calendar.google.com/calendar/ical/c_62ejgnq5tqpu3kl47ul3qpotv0%40group.calendar.google.com/public/basic.ics)</li>
+- [NC State events](https://calendar.google.com/calendar/ical/c_t28vt5a8vmnc2alsrkgs5h76ic%40group.calendar.google.com/public/basic.ics)</li>
+
 [How to use](https://support.google.com/calendar/answer/37100?hl=en&co=GENIE.Platform%3DDesktop) - see section "Use a link to add a public calendar"
 
-<h3>Calendar Sync Release v2.0.0</h3>
+<h2>Calendar Sync Release v2.0.0</h2>
 
 <h4>Bug fixes</h4>
 <ul>
