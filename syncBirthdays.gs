@@ -73,5 +73,6 @@ function isValidDate(d) {
 }
 
 function getDate(d) {
-  return new Date(Utilities.formatDate(new Date(d), "EST", "MM/dd/yyyy"));
+  // Use UTC to prevent off-by-one dates
+  return new Date(Utilities.formatDate(new Date(d), "UTC", "MM/dd/yyyy"));
 }
