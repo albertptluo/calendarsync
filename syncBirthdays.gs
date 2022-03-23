@@ -52,8 +52,8 @@ function copyBirthdays() {
                    options: {description: description}
                   });
     
-    var test = "C" + (index+ 1);
-    sheet.getRange(test).setValue('TRUE');
+    var addedColumn = "C" + (index+ 1);
+    sheet.getRange(addedColumn).setValue('TRUE');
     
     index++;
   }
