@@ -96,7 +96,7 @@ function syncTabToCalendars(sheet, currentDate) {
       ncs_events.push(event);
     } else if (ministry == "Churchwide" || ministry == "College") {
       churchwide_events.push(event);
-    } else if (ministry == "UNC") {
+    } else if (ministry == "UNC" || ministry == "Chapel Hill") {
       unc_events.push(event);
     }
     index++;
