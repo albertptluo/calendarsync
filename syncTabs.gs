@@ -1,17 +1,35 @@
-function Sync_Tabs() {
-  
-  var currentDate = new Date(Utilities.formatDate(new Date(), "EST", "MM/dd/yyyy"));
-  var tabName = formatDate(currentDate);
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(tabName);
-  while (sheet != null) {
-    syncTabToCalendars(sheet, currentDate);
-    currentDate.setDate(currentDate.getDate()+1);
-    tabName = formatDate(currentDate);
-    sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(tabName);
+// For Bulletin tab
+/*
+Need to check for the following:
+[ ] if there's no time, don't put it in the calendar
+[ ] only start syncing if the date is today
+[ ] we merged the date cell, so we need to sync it even if the date is empty
+*/
+
+function syncTabs() {
+
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = spreadsheet.getSheets();
+
+  var pattern = /^(\d{1,2}\/\d{1,2} [A-Za-z]{3})$/;
+
+  for (var i = 0; i < sheets.length; i++) {
+    var sheet = sheets[i];
+    var sheetName = sheet.getName();
+    
+    if (pattern.test(sheetName)) {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+      if( sheet == null) {return;}
+      syncTabToCalendars(sheet, createDateFromString(sheetName));
+    }
   }
 }
 
-function syncTabToCalendars(sheet, currentDate) {
+function syncTabToCalendars(sheet, tabDate) {
+  var today = new Date();
+  if (tabDate.getTime() < today.getTime()) {
+    return;
+  }
   var ncs_calendar = CalendarApp.getCalendarsByName("NCS Team")[0];
   var churchwide_calendar = CalendarApp.getCalendarsByName("nc_churchwide")[0]; 
   var unc_calendar = CalendarApp.getCalendarsByName("unc_a2f_team")[0];
@@ -24,7 +42,7 @@ function syncTabToCalendars(sheet, currentDate) {
   var allCellValuesInTab = sheet.getRange(columnRange).getDisplayValues();
   
   var numRows = sheet.getLastRow();
-  var index = 2;
+  var index = 1;
   var eventName = null;
   var eventStart = null;
   var eventEnd = null;
@@ -36,27 +54,26 @@ function syncTabToCalendars(sheet, currentDate) {
   var toDelete = {};
   var descriptionText; 
   
-  
-  
   while(index < numRows)
   {
     // Get event start/end times
-    var eventDate = new Date(currentDate);    
     eventStart = getDateFromTimeString(allCellValuesInTab[index][1]);
     if (eventStart == null) {
       index++;
       continue;
     }
-    eventStart.setMonth(eventDate.getMonth());
-    eventStart.setDate(eventDate.getDate());
+    eventStart.setMonth(tabDate.getMonth();,tabDate.getDate()); // setMonth has an optional value for the date. But if you want to setMonth to April, but today's date is March 31, it will use 31 as the default date, and the month will get set to May instead of April
     
     eventEnd = getDateFromTimeString(allCellValuesInTab[index][2]);
     if (eventEnd == null) {
       eventEnd = new Date(eventStart);
       eventEnd.setHours(eventStart.getHours() + 1);
     }
-    eventEnd.setMonth(eventDate.getMonth());
-    eventEnd.setDate(eventDate.getDate());
+    if  (eventEnd.getTime() < eventStart.getTime()) {
+      eventEnd.setDate(eventStart.getDate() + 1);
+    }
+    eventEnd.setMonth(tabDate.getMonth());
+    eventEnd.setDate(tabDate.getDate());
     
     // Process the event name for the row
     eventName = allCellsInTab[index][3];      
@@ -96,15 +113,15 @@ function syncTabToCalendars(sheet, currentDate) {
       ncs_events.push(event);
     } else if (ministry == "Churchwide" || ministry == "College") {
       churchwide_events.push(event);
-    } else if (ministry == "UNC" || ministry == "Chapel Hill") {
+    } else if (ministry.includes("UNC") || ministry == "Chapel Hill") {
       unc_events.push(event);
     }
     index++;
   }
 
-  events = ncs_calendar.getEventsForDay(currentDate);
-  events = events.concat(unc_calendar.getEventsForDay(currentDate));
-  events = events.concat(churchwide_calendar.getEventsForDay(currentDate));
+  events = ncs_calendar.getEventsForDay(tabDate);
+  events = events.concat(unc_calendar.getEventsForDay(tabDate));
+  events = events.concat(churchwide_calendar.getEventsForDay(tabDate));
   for(var e in events){
     var name = events[e].getTitle();
     // delete all calendar events that were created by the script
@@ -121,19 +138,34 @@ function syncTabToCalendars(sheet, currentDate) {
   for (var e in ncs_events) {
     var start = ncs_events[e]['start'].getHours();
     var end = ncs_events[e]['end'].getHours();
-    ncs_calendar.createEvent(ncs_events[e]['name'], ncs_events[e]['start'], ncs_events[e]['end'], ncs_events[e]['options']);
+    try {
+      ncs_calendar.createEvent(ncs_events[e]['name'], ncs_events[e]['start'], ncs_events[e]['end'], ncs_events[e]['options']);
+    }
+    catch (error) {
+      throw error
+    }
     Utilities.sleep(5);
   }
   for (var e in unc_events) {
     var start = unc_events[e]['start'].getHours();
     var end = unc_events[e]['end'].getHours();
-    unc_calendar.createEvent(unc_events[e]['name'], unc_events[e]['start'], unc_events[e]['end'], unc_events[e]['options']);
+    try {
+      unc_calendar.createEvent(unc_events[e]['name'], unc_events[e]['start'], unc_events[e]['end'], unc_events[e]['options']);
+    }
+    catch (error) {
+      throw error
+    }
     Utilities.sleep(5);
   }
   for (var e in churchwide_events) {
     var start = churchwide_events[e]['start'].getHours();
     var end = churchwide_events[e]['end'].getHours();
-    churchwide_calendar.createEvent(churchwide_events[e]['name'], churchwide_events[e]['start'], churchwide_events[e]['end'], churchwide_events[e]['options']);
+    try {
+      churchwide_calendar.createEvent(churchwide_events[e]['name'], churchwide_events[e]['start'], churchwide_events[e]['end'], churchwide_events[e]['options']);
+    }
+    catch (error) {
+      throw error
+    }
     Utilities.sleep(5);
   }
 }
@@ -165,6 +197,16 @@ function formatDate(date) {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   var dayOfWeek = days[date.getDay()];
   return "" + month + "/" + day + " " + dayOfWeek;
+}
+
+function createDateFromString(dateString) {
+  const [dayMonth, day] = dateString.split(' ');
+  const [dayStr, monthStr] = dayMonth.split('/');
+  const year = new Date().getFullYear(); // Assuming the current year
+
+  const dateStr = `${dayStr}/${monthStr}/${year}`;
+
+  return new Date(dateStr);
 }
 
 
